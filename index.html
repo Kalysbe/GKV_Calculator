@@ -1,0 +1,213 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Калькулятор ГКВ</title>
+</head>
+<style>
+    body {
+        background-image: url('https://www.seniorconcerns.org/wp-content/uploads/2011/11/finance1.jpg');
+        background-repeat: no-repeat;
+        background-size: auto;
+    }
+    
+    .wrapper {
+        background: #fff;
+        margin: 10px 0;
+        border-radius: 10px;
+    }
+    h1 {
+        font-size: 24px;
+    }
+    table {
+    width: 100%;
+	margin-bottom: 20px;
+	border: 1px solid #dddddd;
+	border-collapse: collapse; 
+}
+table th {
+	font-weight: bold;
+	padding: 5px;
+	background: #efefef;
+	border: 1px solid #dddddd;
+}
+table td {
+	border: 1px solid #dddddd;
+	padding: 5px;
+}
+
+button {
+    float: right;
+    margin: 5px;
+    font-size: 18px;
+}
+</style>
+<body >
+    <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-md-8 wrapper">
+            <h1>Калькулятор для маркет мейкера </h1>
+            <form>
+                <div class="row row-cols-1 row-cols-md-3">
+                  <div class="col mb-3">
+                    <label for="dateDeploy" class="form-label">Дата размещения</label>
+                    <input type="date" class="form-control" id="dateDeploy" name="dateDeploy" value="2024-01-01" required>
+                  </div>
+                  <div class="col mb-3">
+                    <label for="dateRepay" class="form-label">Дата погашения</label>
+                    <input type="date" class="form-control" id="dateRepay" name="dateRepay" required>
+                  </div>
+                  <div class="col mb-3">
+                    <label for="dateBuy" class="form-label">Дата покупки</label>
+                    <input type="date" class="form-control" id="dateBuy" name="dateBuy" required>
+                  </div>
+                  <div class="col mb-3">
+                    <label for="volume" class="form-label">Объем ГКВ</label>
+                    <input type="number" class="form-control" id="volume" name="volume" required>
+                  </div>
+                  <div class="col mb-3">
+                    <label for="price" class="form-label">Цена покупки ГКВ</label>
+                    <input type="number" class="form-control" id="price" name="price" required>
+                  </div>
+                  <div class="col mb-3">
+                    <label for="dateSell" class="form-label">Дата продажи</label>
+                    <input type="date" class="form-control" id="dateSell" name="dateSell" value="2024-01-01" required>
+                  </div>
+                  <div class="col mb-3">
+                    <label for="profitToBuy" class="form-label">На сколько % ниже покупать</label>
+                    <input type="number" class="form-control" id="profitToBuy" name="profitToBuy" value="1" required>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="calculate()">Посчитать</button>
+              </form>
+            <div id="info_detail" class="mt-3" style="display: none;">
+              <table class="table">
+                <tbody>
+                  <tr>
+                    <td colspan="2"><b>Дни</b></td>
+                  </tr>
+                  <tr>
+                    <td>Кол-во дней до погашения с момента покупки</td>
+                    <td id="daysRemaining"></td>
+                  </tr>
+                  <tr>
+                    <td>Кол-во дней между покупкой и продажей</td>
+                    <td id="daysBetween"></td>
+                  </tr>
+                  <tr>
+                    <td><b>Цена</b></td>
+                  </tr>
+                  <tr>
+                    <td>Цена по номиналу</td>
+                    <td>100</td>
+                  </tr>
+                  <tr>
+                    <td>Цена покупки / доходность</td>
+                    <td id="buyPrice"></td>
+                  </tr>
+                  <tr>
+                    <td>Цена сейчас / доходность</td>
+                    <td id="sellPrice"></td>
+                  </tr>
+                  <tr>
+                    <td>Увеличение цены на каждую ГКВ</td>
+                    <td id="increase"></td>
+                  </tr>
+                  <tr>
+                    <td>Цена по которой надо покупать / доходность</td>
+                    <td id="priceToBuy"></td>
+                  </tr>
+                  <tr>
+                    <td><b>Деньги</b></td>
+                  </tr>
+                  <tr>
+                    <td>Количество денег при покупке</td>
+                    <td id="buyCurrency"></td>
+                  </tr>
+                  <tr>
+                    <td>Количество денег при продаже сейчас</td>
+                    <td id="sellCurrency"></td>
+                  </tr>
+                  <tr>
+                    <td>Количество денег по погашению</td>
+                    <td id="repayCurrency"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.getElementById("dateDeploy").addEventListener("change", function() {
+        // Get the selected date from "Дата размещения"
+        let selectedDate = new Date(this.value);
+        
+        // Calculate the date 364 days later
+        let repaymentDate = new Date(selectedDate);
+        repaymentDate.setDate(selectedDate.getDate() + 364);
+        let formattedDate = repaymentDate.toISOString().split('T')[0];
+
+        let repaymentDate2 = new Date(selectedDate);
+        repaymentDate2.setDate(selectedDate.getDate());
+        let formattedDate2 = repaymentDate2.toISOString().split('T')[0];
+        
+        // Set the calculated date as the value for "Дата погашения"
+        document.getElementById("dateRepay").value = formattedDate;
+        document.getElementById("dateBuy").value = formattedDate2;
+    });
+
+    function calculateDaysRemaining() {
+let dateRepay = new Date(document.getElementById("dateRepay").value);
+let dateBuy = new Date(document.getElementById("dateBuy").value);
+let timeDiff = dateRepay - dateBuy;
+let daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+
+return daysRemaining;
+}
+
+
+    function calculate() {
+        // Update "Дата погашения" when "Дата размещения" changes
+ 
+        let dateDeploy = document.getElementById("dateDeploy").value;
+        let dateRepay = document.getElementById("dateRepay").value;
+        let dateBuy = document.getElementById("dateBuy").value;
+        let volume = Number(document.getElementById("volume").value);
+        let price = Number(document.getElementById("price").value);
+        let dateSell = document.getElementById("dateSell").value;
+        let profitToBuy = document.getElementById("profitToBuy").value
+
+
+        // if (dateDeploy && dateRepay && dateBuy && volume && price && dateSell) {
+           
+            let daysBetween = Math.floor((new Date(dateSell) - new Date(dateBuy)) / (1000 * 60 * 60 * 24));
+
+            let currencyPrice = ((((100-price)/364) * daysBetween)+ price).toFixed(4)
+            let currencyPriceBuy = (currencyPrice - ((currencyPrice/100)*profitToBuy)).toFixed(4)
+            let repayPrice = +(((100-price)/364) * calculateDaysRemaining() )+ +price
+
+            document.getElementById("daysRemaining").innerText = calculateDaysRemaining()
+            document.getElementById("daysBetween").innerText = daysBetween
+            document.getElementById("buyPrice").innerText = `${price} / ${((( ( 100-price ) / price) * ( 360  /364 ) ) * 100).toFixed(2)} %`
+            document.getElementById("sellPrice").innerText = `${currencyPrice} / ${((( ( 100-currencyPrice ) / currencyPrice) * ( 360  /364 ) ) * 100).toFixed(2)} %`
+            document.getElementById("priceToBuy").innerText = `${currencyPriceBuy} / ${((( ( 100-currencyPriceBuy ) / currencyPriceBuy) * ( 360  /364 ) ) * 100).toFixed(2)} %`
+            document.getElementById("increase").innerText = (((100-price)/364) * daysBetween).toFixed(4)
+            document.getElementById("buyCurrency").innerText = (volume*price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById("sellCurrency").innerText = (volume*currencyPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById("repayCurrency").innerText =(volume*repayPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    
+  
+        // } else {
+        //     alert("Please fill in all required fields.");
+        // }
+        document.getElementById("info_detail").style.display = "table"
+    }
+
+</script>
+</body>
+</html>
